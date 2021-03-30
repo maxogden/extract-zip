@@ -8,6 +8,7 @@ const stream = require('stream')
 const yauzl = require('yauzl')
 
 const openZip = promisify(yauzl.open)
+const openBuffer = promisify(yauzl.fromBuffer)
 const pipeline = promisify(stream.pipeline)
 
 class Extractor {
@@ -19,7 +20,7 @@ class Extractor {
   async extract () {
     debug('opening', this.zipPath, 'with opts', this.opts)
 
-    this.zipfile = await openZip(this.zipPath, { lazyEntries: true })
+    this.zipfile = await (typeof this.zipPath === 'string' ? openZip : openBuffer)(this.zipPath, { lazyEntries: true })
     this.canceled = false
 
     return new Promise((resolve, reject) => {
