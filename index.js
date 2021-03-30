@@ -53,7 +53,9 @@ class Extractor {
         const destDir = path.dirname(path.join(this.opts.dir, entry.fileName))
 
         try {
-          await fs.mkdir(destDir, { recursive: true })
+          if (path.parse(process.cwd()).root !== destDir) {
+            await fs.mkdir(destDir, { recursive: true })
+          }
 
           const canonicalDestDir = await fs.realpath(destDir)
           const relativeDestDir = path.relative(this.opts.dir, canonicalDestDir)
@@ -167,7 +169,10 @@ module.exports = async function (zipPath, opts) {
     throw new Error('Target directory is expected to be absolute')
   }
 
-  await fs.mkdir(opts.dir, { recursive: true })
+  if (path.parse(process.cwd()).root !== opts.dir) {
+    await fs.mkdir(opts.dir, { recursive: true })
+  }
+
   opts.dir = await fs.realpath(opts.dir)
   return new Extractor(zipPath, opts).extract()
 }
