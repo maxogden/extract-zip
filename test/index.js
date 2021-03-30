@@ -24,6 +24,12 @@ async function tempExtract (t, suffix, zipPath) {
   return dirPath
 }
 
+async function tempExtractBuf (t, suffix, buffer) {
+  const dirPath = await mkdtemp(t, suffix)
+  await extract.extractBuffer(buffer, { dir: dirPath })
+  return dirPath
+}
+
 async function pathExists (t, pathToCheck, message) {
   const exists = await fs.pathExists(pathToCheck)
   t.true(exists, message)
@@ -42,6 +48,12 @@ async function assertPermissions (t, pathToCheck, expectedMode) {
 
 test('files', async t => {
   const dirPath = await tempExtract(t, 'files', catsZip)
+  await pathExists(t, path.join(dirPath, 'cats', 'gJqEYBs.jpg'), 'file created')
+})
+
+test('buffer', async t => {
+  const catsBuf = await fs.readFile(catsZip)
+  const dirPath = await tempExtractBuf(t, 'files', catsBuf)
   await pathExists(t, path.join(dirPath, 'cats', 'gJqEYBs.jpg'), 'file created')
 })
 

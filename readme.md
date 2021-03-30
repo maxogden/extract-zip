@@ -31,13 +31,30 @@ const extract = require('extract-zip')
 
 async function main () {
   try {
-    await extract(source, { dir: target })
+    await extract(filename, { dir: target })
     console.log('Extraction complete')
   } catch (err) {
     // handle any errors
   }
 }
 ```
+
+The `extractBuffer` helper function can be used if the zipped data is
+not stored in a file. It has the same `source` and `options` parameters:
+
+```javascript
+const extract = require('extract-zip')
+
+async function main () {
+  try {
+    await extract.extractBuffer(buffer, { dir: target })
+    console.log('Extraction complete')
+  } catch (err) {
+    // handle any errors
+  }
+}
+```
+
 
 ### Options
 

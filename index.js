@@ -7,19 +7,33 @@ const { promisify } = require('util')
 const stream = require('stream')
 const yauzl = require('yauzl')
 
+const fromBuffer = promisify(yauzl.fromBuffer)
 const openZip = promisify(yauzl.open)
 const pipeline = promisify(stream.pipeline)
 
+const yauzlOpts = { lazyEntries: true }
+
 class Extractor {
-  constructor (zipPath, opts) {
-    this.zipPath = zipPath
+  constructor (opts) {
     this.opts = opts
   }
 
-  async extract () {
-    debug('opening', this.zipPath, 'with opts', this.opts)
+  async extractFile (zipPath) {
+    debug('extracting file', zipPath, 'with opts', this.opts)
+    const zipfile = await openZip(zipPath, yauzlOpts)
+    return this.extract(zipfile)
+  }
 
-    this.zipfile = await openZip(this.zipPath, { lazyEntries: true })
+  async extractBuffer (buffer) {
+    debug('extracting buffer with opts', this.opts)
+    const zipfile = await fromBuffer(buffer, yauzlOpts)
+    return this.extract(zipfile)
+  }
+
+  async extract (zipfile) {
+    await this.ensureDir()
+
+    this.zipfile = zipfile
     this.canceled = false
 
     return new Promise((resolve, reject) => {
@@ -29,11 +43,9 @@ class Extractor {
       })
       this.zipfile.readEntry()
 
-      this.zipfile.on('close', () => {
-        if (!this.canceled) {
-          debug('zip extraction complete')
-          resolve()
-        }
+      this.zipfile.on('end', () => {
+        debug('zip extraction complete')
+        resolve()
       })
 
       this.zipfile.on('entry', async entry => {
@@ -158,16 +170,27 @@ class Extractor {
 
     return mode
   }
-}
 
-module.exports = async function (zipPath, opts) {
-  debug('creating target directory', opts.dir)
+  async ensureDir () {
+    debug('creating target directory', this.opts.dir)
 
-  if (!path.isAbsolute(opts.dir)) {
-    throw new Error('Target directory is expected to be absolute')
+    if (!path.isAbsolute(this.opts.dir)) {
+      throw new Error('Target directory is expected to be absolute')
+    }
+
+    await fs.mkdir(this.opts.dir, { recursive: true })
+    this.opts.dir = await fs.realpath(this.opts.dir)
   }
-
-  await fs.mkdir(opts.dir, { recursive: true })
-  opts.dir = await fs.realpath(opts.dir)
-  return new Extractor(zipPath, opts).extract()
 }
+
+async function extractFile (filename, opts) {
+  return new Extractor(opts).extractFile(filename)
+}
+
+async function extractBuffer (buffer, opts) {
+  return new Extractor(opts).extractBuffer(buffer)
+}
+
+module.exports = extractFile
+module.exports.extractBuffer = extractBuffer
+module.exports.extractFile = extractFile
