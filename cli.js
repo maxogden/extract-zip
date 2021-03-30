@@ -3,10 +3,12 @@
 /* eslint-disable no-process-exit */
 
 var extract = require('./')
+var path = require('path')
 
 var args = process.argv.slice(2)
 var source = args[0]
-var dest = args[1] || process.cwd()
+var dest = path.resolve(args[1] || process.cwd())
+
 if (!source) {
   console.error('Usage: extract-zip foo.zip <targetDirectory>')
   process.exit(1)
