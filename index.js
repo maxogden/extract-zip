@@ -37,6 +37,13 @@ class Extractor {
       })
 
       this.zipfile.on('entry', async entry => {
+        if (this.opts.filter) {
+          if (!this.opts.filter(entry, this.zipfile)) {
+            this.zipfile.readEntry()
+            return
+          }
+        }
+
         /* istanbul ignore if */
         if (this.canceled) {
           debug('skipping entry', entry.fileName, { cancelled: this.canceled })

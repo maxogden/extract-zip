@@ -10,6 +10,7 @@ declare namespace extract {
         defaultDirMode?: number;
         defaultFileMode?: number;
         onEntry?: (entry: Entry, zipfile: ZipFile) => void;
+        filter?: (entry: Entry, zipfile: ZipFile) => boolean;
     }
 }
 

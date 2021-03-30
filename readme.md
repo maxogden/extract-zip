@@ -45,6 +45,7 @@ async function main () {
 - `defaultDirMode` - integer - Directory Mode (permissions), defaults to `0o755`
 - `defaultFileMode` - integer - File Mode (permissions), defaults to `0o644`
 - `onEntry` - function - if present, will be called with `(entry, zipfile)`, entry is every entry from the zip file forwarded from the `entry` event from yauzl. `zipfile` is the `yauzl` instance
+- `filter` - function - if present, will be called with `(entry, zipfile)`, entry is every entry from the zip file forwarded from the `entry` event from yauzl. `zipfile` is the `yauzl` instance. If the filter returns `true` for a given file it will be extracted, else it will be skipped. It is possible to change `entry.fileName` in the filter to change the location of output files.
 
 Default modes are only used if no permissions are set in the zip file.
 

@@ -161,3 +161,20 @@ test('extract broken zip', async t => {
     message: 'invalid central directory file header signature: 0x2014b00'
   })
 })
+
+test('filter file output', async t => {
+  const dirPath = await mkdtemp(t, 'filter-files')
+  await extract(catsZip, {
+    dir: dirPath,
+    filter: (entry, zipFile) => {
+      if (entry.fileName !== 'a-cat.png') {
+        return false
+      }
+      entry.fileName = 'bored-cat.png'
+      entry.fileNameLength = entry.fileName.length
+      return true
+    }
+  })
+  const entries = await fs.readdir(dirPath)
+  t.deepEqual(entries, ['bored-cat.png'])
+})
